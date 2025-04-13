@@ -20,8 +20,7 @@ page = requests.get(link, headers = get_headers())
 soup = BeautifulSoup(page.text,'lxml')
 
 text_doc = pd.DataFrame(columns = ['link', 'name','text']) 
-a = soup.find_all('li')   
-a = soup.find_all('li')   
+a = soup.find_all('li')    
 for i in a:                  
     if re.search(r'consultant', str(i)) == None:  
         continue

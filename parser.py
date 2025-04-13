@@ -19,7 +19,7 @@ link = 'https://habr.com/ru/articles/432466/'
 page = requests.get(link, headers = get_headers())
 soup = BeautifulSoup(page.text,'lxml')
 
-text_zak = pd.DataFrame(columns = ['Ссылка', 'Наименование закона','Комментарии','Текст закона']) 
+text_doc = pd.DataFrame(columns = ['link', 'name','text']) 
 a = soup.find_all('li')   
 a = soup.find_all('li')   
 for i in a:                  

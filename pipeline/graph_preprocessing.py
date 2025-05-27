@@ -2,7 +2,6 @@ from sentence_transformers import SentenceTransformer, util
 from collections import Counter, defaultdict
 import numpy as np
 import pandas as pd
-import faiss
 import umap
 import hdbscan
 import networkx as nx
@@ -48,31 +47,36 @@ def normalize_triplets(triplets, threshold=0.75):
 def triplet_to_text(tr):
     return f"{tr['subject']} {tr['predicate']} {tr['object']}"
 
-def filter_triplets(triplets, theme_query=None, model_name="paraphrase-multilingual-MiniLM-L12-v2"):
+def filter_triplets(triplets, theme_query=None, theme_threshold=0.4):
     texts = [triplet_to_text(t) for t in triplets]
-    embeddings = model.encode(texts)
-    
+    embeddings = model.encode(texts, convert_to_tensor=True)
+
     if theme_query:
-        theme_threshold = 0.5
-        query_emb = model.encode(theme_query).reshape(1, -1)
-        index = faiss.IndexFlatL2(embeddings.shape[1])
-        index.add(np.array(embeddings))
-        distances, indices = index.search(query_emb, len(embeddings))
-        keep_idx = indices[0][distances[0] < theme_threshold]
+        query_emb = model.encode(theme_query, convert_to_tensor=True)
+        sims = util.cos_sim(query_emb, embeddings)[0] 
+
+        keep_idx = [i for i, sim in enumerate(sims) if sim >= theme_threshold]
+        if not keep_idx:
+            return pd.DataFrame(columns=["subject", "predicate", "object", "description"])
+
         texts = [texts[i] for i in keep_idx]
-        embeddings = [embeddings[i] for i in keep_idx]
+        embeddings = embeddings[keep_idx]
         triplets = [triplets[i] for i in keep_idx]
 
+    if len(triplets) < 2:
+        print("Недостаточно данных для кластеризации.")
+        return pd.DataFrame(triplets)
+
     reducer = umap.UMAP(n_neighbors=5, min_dist=0.3, metric='cosine')
-    embedding_2d = reducer.fit_transform(embeddings)
+    embedding_2d = reducer.fit_transform(embeddings.cpu().numpy())
     clusterer = hdbscan.HDBSCAN(min_cluster_size=2, metric='euclidean')
     labels = clusterer.fit_predict(embedding_2d)
 
     df = pd.DataFrame(triplets)
     df["text"] = texts
     df["cluster"] = labels
-    df_filtered = df[df["cluster"] != -1].copy()
 
+    df_filtered = df[df["cluster"] != -1].copy()
     return df_filtered.reset_index(drop=True)
 
 

@@ -8,26 +8,30 @@ def validate_and_clean_triplets(triplets):
         if not isinstance(t, dict):
             continue
         try:
-            s, p, o = t['subject'], t['predicate'], t['object']
+            s = str(t['subject']).strip()
+            p = str(t['predicate']).strip()
+            o = str(t['object']).strip()
+            d = str(t.get('description', '')).strip()
         except KeyError:
             continue
-        if not (s and p and o):
+        if any(isinstance(x, list) for x in [s, p, o]):
+            continue
+        if not (s and p and o): 
             continue
         valid.append({
-            "subject": s.strip(),
-            "predicate": p.strip(),
-            "object": o.strip(),
-            "description": t.get("description", "").strip() if t.get("description") else ""
+            "subject": s,
+            "predicate": p,
+            "object": o,
+            "description": d
         })
-
     if not valid:
-        valid = 'Заглушка'
-
+        return 'Заглушка'
     return valid
+
 
 def clean_text(text):
     text = str(text).lower().strip()
-    text = re.sub(r'[«»"\'\[\]{}()\\/.,;:!?–—-]', '', text)
+    text = re.sub(r'["\'\[\]{}()\\/.!?–—-]', '', text)
     text = re.sub(r'\s+', ' ', text)
     return text.strip()
 
@@ -39,8 +43,49 @@ def clean_triplets(triplets):
         'description': clean_text(t.get('description', ''))
     } for t in triplets]
 
+def move_verb_and_adjective(triplets):
+    updated = []
+
+    for t in triplets:
+        t = t.copy()
+        object_words = t['object'].split()
+        predicate_words = t['predicate'].split()
+
+        verb_part = []
+        object_clean = []
+        noun_found = False
+
+        for word in object_words:
+            parsed = morph.parse(word)[0]
+            if not noun_found:
+                if 'VERB' in parsed.tag or 'INFN' in parsed.tag:
+                    verb_part.append(word)
+                elif 'NOUN' in parsed.tag:
+                    noun_found = True
+                    object_clean.append(word)
+                else:
+                    verb_part.append(word)
+            else:
+                object_clean.append(word)
+
+        if verb_part:
+            t['predicate'] = f"{t['predicate']} {' '.join(verb_part)}".strip()
+            t['object'] = " ".join(object_clean).strip()
+
+        if predicate_words:
+            last_word = predicate_words[-1]
+            parsed = morph.parse(last_word)[0]
+            if 'ADJF' in parsed.tag and len(predicate_words) > 1:
+                predicate_words = predicate_words[:-1]
+                t['predicate'] = " ".join(predicate_words).strip()
+                t['object'] = f"{last_word} {t['object']}".strip()
+
+        updated.append(t)
+
+    return updated
+
 def move_preposition_to_predicate(triplets):
-    prepositions = {"в", "на", "по", "о", "об", "от", "с", "у", "к", "из", "за", "без", "для", "при", "через", "над", "под"}
+    prepositions = {"в", "на", "по", "о", "об", "от", "с", "у", "к", "из", "за", "без", "для", "при", "через", "над", "под", "со"}
     updated = []
     for t in triplets:
         words = t['object'].split()
@@ -60,16 +105,20 @@ def normalize_phrase_to_nominative(text):
     noun_found = False
     for word in words:
         parsed = morph.parse(word)[0]
+
         if not noun_found:
             if 'ADJF' in parsed.tag or 'PRTF' in parsed.tag:
-                result.append(parsed.inflect({'nomn'}).word)
+                inflected = parsed.inflect({'nomn'})
+                result.append(inflected.word if inflected else word)
             elif 'NOUN' in parsed.tag:
                 noun_found = True
-                result.append(parsed.inflect({'nomn'}).word)
+                inflected = parsed.inflect({'nomn'})
+                result.append(inflected.word if inflected else word)
             else:
                 result.append(word)
         else:
             result.append(word)
+
     return ' '.join(result)
 
 def normalize_triplets_to_nominative(triplets):

@@ -63,7 +63,7 @@ def query_relation_path():
     user = "admin"
     password = "admin123"
 
-    print("\n🔎 Поиск ближайших узлов по смыслу")
+    print("\n Поиск ближайших узлов по смыслу")
     node1 = find_closest_node(name1, uri, user, password)
     node2 = find_closest_node(name2, uri, user, password)
 

@@ -47,7 +47,7 @@ def update_graph_with_buffer(uri="bolt://localhost:7687", user="admin", password
         print("Буфер пуст — обновление не требуется.")
         return
 
-    print(f"Загружено {len(buffer)} триплетов из буфера. Выполняется фильтрация и обновление...")
+    print(f"Загружено {len(buffer)} триплетов из буфера. Выполняется фильтрация и обновление")
 
     triplets = normalize_triplets(buffer, threshold=0.75)
     triplets_df = filter_triplets(triplets, theme_query="информационная безопасность", theme_threshold=0.4)

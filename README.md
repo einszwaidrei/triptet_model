@@ -48,24 +48,27 @@ python main.py
 ## Структура проекта
 
 ```
-project/
-├── main.py                    # CLI-интерфейс пользователя
-├── dev_test.py                # Тестовая отладка пайплайна
-├── triplet_buffer.jsonl       # Буфер добавленных вручную триплетов, генерируется самостоятельно
-├── access.json                # Токены доступа к Yandex API
-├── requirements.txt           # Зависимости проекта
-├── pipeline/
-│   ├── postprocessing.py      # Очистка и нормализация триплетов
-│   ├── graph_preprocessing.py # Семантическая агрегация и фильтрация
-│   ├── neo4j_loader.py        # Загрузка триплетов в Neo4j
-│   └── yandex_gpt_integration.py # Вызов LLM YandexGPT
-├── buffer.py                  # Работа с буфером триплетов
-├── graph_update.py           # Обновление графа с учётом новых триплетов
-├── manual_triplet.py         # Добавление триплета вручную
-├── text_upload.py            # Обработка текста с извлечением триплетов
-├── object_query.py           # Поиск всех связей у объекта
-├── relation_similarity.py    # Поиск похожих триплетов
-└── relation_path.py          # Поиск прямых/непрямых связей между объектами
+project_root/
+├── main.py                        # CLI-интерфейс пользователя
+├── dev_test.py                    # Тестовая отладка пайплайна
+├── access.json                    # Токены доступа к Yandex API
+├── requirements.txt               # Зависимости проекта
+├── graph_actions/
+│   ├── buffer.py                  # Работа с буфером триплетов
+│   ├── triplet_buffer.jsonl       # Файл с буфером триплетов
+│   ├── graph_update.py            # Обновление графа с учётом новых триплетов
+│   ├── manual_triplet.py          # Добавление триплета вручную
+│   ├── text_upload.py             # Обработка текста с извлечением триплетов
+│   ├── object_query.py            # Поиск всех связей у объекта
+│   ├── relation_similarity.py     # Поиск похожих триплетов
+│   └── relation_path.py           # Поиск прямых/непрямых связей между объектами
+├── graph_builder/
+│   ├── postprocessing.py          # Очистка и нормализация триплетов
+│   ├── graph_preprocessing.py     # Семантическая агрегация и фильтрация
+│   ├── neo4j_loader.py            # Загрузка триплетов в Neo4j
+│   ├── embeddings_utils.py        # Модель эмбеддингов и утилиты
+│   └── yandex_gpt_integration.py  # Вызов LLM YandexGPT
+
 ```
 
 ---

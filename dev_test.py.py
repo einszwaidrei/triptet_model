@@ -8,7 +8,7 @@ if not hasattr(inspect, 'getargspec'):
         return ArgSpec(argspec.args, argspec.varargs, argspec.varkw, argspec.defaults)
     inspect.getargspec = getargspec
 
-from pipeline.postprocessing import (
+from graph_builder.postprocessing import (
     validate_and_clean_triplets,
     clean_triplets,
     move_preposition_to_predicate,
@@ -16,15 +16,15 @@ from pipeline.postprocessing import (
     move_verb_and_adjective  
 )
 
-from pipeline.graph_preprocessing import (
+from graph_builder.graph_preprocessing import (
     normalize_triplets,
     filter_triplets,
     filter_triplets_by_component_size
 )
-from pipeline.neo4j_loader import insert_triplets_to_neo4j
-from pipeline.yandex_gpt_integration import get_triplets_from_yandex
+from graph_builder.neo4j_loader import insert_triplets_to_neo4j
+from graph_builder.yandex_gpt_integration import get_triplets_from_yandex
 
-def full_pipeline(text_input):
+def full_graph_builder(text_input):
     raw_triplets = get_triplets_from_yandex(text_input)
     triplets = validate_and_clean_triplets(raw_triplets)
     triplets = clean_triplets(triplets)
@@ -41,7 +41,7 @@ def graph_pipeline(triplets):
 
 if __name__ == "__main__":
     text = input("Введите текст: ")
-    triplets = full_pipeline(text)
+    triplets = full_graph_builder(text)
     print("\n Обработанные триплеты ===")
     for t in triplets:
         print(t)

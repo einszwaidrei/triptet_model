@@ -1,11 +1,10 @@
 from sentence_transformers import SentenceTransformer, util
 from neo4j import GraphDatabase
 
-model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-
+from graph_builder.embeddings_utils import embedding_model
 
 def find_closest_node(input_name, uri, user, password, threshold=0.75):
-    query_emb = model.encode(input_name, convert_to_tensor=True)
+    query_emb = embedding_model.encode(input_name, convert_to_tensor=True)
 
     driver = GraphDatabase.driver(uri, auth=(user, password))
     with driver.session() as session:
@@ -17,7 +16,7 @@ def find_closest_node(input_name, uri, user, password, threshold=0.75):
         print("Граф пуст или не содержит узлов.")
         return None
 
-    embeddings = model.encode(all_names, convert_to_tensor=True)
+    embeddings = embedding_model.encode(all_names, convert_to_tensor=True)
     sims = util.cos_sim(query_emb, embeddings)[0]
 
     best_idx = sims.argmax().item()

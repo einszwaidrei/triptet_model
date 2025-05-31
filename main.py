@@ -1,9 +1,9 @@
-from manual_triplet import process_manual_triplet
-from text_upload import process_text_input
-from graph_update import update_graph_with_buffer
-from object_query import query_object_relations
-from relation_similarity import query_similar_triplet
-from relation_path import query_relation_path
+from graph_actions.manual_triplet import process_manual_triplet
+from graph_actions.text_upload import process_text_input
+from graph_actions.graph_update import update_graph_with_buffer
+from graph_actions.object_query import query_object_relations
+from graph_actions.relation_similarity import query_similar_triplet
+from graph_actions.relation_path import query_relation_path
 
 
 def main():

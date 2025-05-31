@@ -5,14 +5,13 @@ import pandas as pd
 import umap
 import hdbscan
 import networkx as nx
-
-model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+from graph_builder.embeddings_utils import embedding_model
 
 def normalize_triplets(triplets, threshold=0.75):
     all_phrases = [t['subject'] for t in triplets] + [t['object'] for t in triplets]
     unique_phrases = list(set(all_phrases))
     phrase_counts = Counter(all_phrases)
-    embeddings = model.encode(unique_phrases, convert_to_tensor=True)
+    embeddings = embedding_model.encode(unique_phrases, convert_to_tensor=True)
 
     groups = defaultdict(list)
     used = set()
@@ -49,10 +48,10 @@ def triplet_to_text(tr):
 
 def filter_triplets(triplets, theme_query=None, theme_threshold=0.4):
     texts = [triplet_to_text(t) for t in triplets]
-    embeddings = model.encode(texts, convert_to_tensor=True)
+    embeddings = embedding_model.encode(texts, convert_to_tensor=True)
 
     if theme_query:
-        query_emb = model.encode(theme_query, convert_to_tensor=True)
+        query_emb = embedding_model.encode(theme_query, convert_to_tensor=True)
         sims = util.cos_sim(query_emb, embeddings)[0] 
 
         keep_idx = [i for i, sim in enumerate(sims) if sim >= theme_threshold]

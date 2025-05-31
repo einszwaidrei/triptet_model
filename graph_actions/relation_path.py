@@ -1,15 +1,10 @@
 from sentence_transformers import SentenceTransformer, util
 from neo4j import GraphDatabase
 
-model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-
-
-def triplet_text(t):
-    return f"{t['subject']} {t['predicate']} {t['object']}"
-
+from graph_builder.embeddings_utils import embedding_model
 
 def find_closest_node(input_name, uri, user, password):
-    query_emb = model.encode(input_name, convert_to_tensor=True)
+    query_emb = embedding_model.encode(input_name, convert_to_tensor=True)
     driver = GraphDatabase.driver(uri, auth=(user, password))
     with driver.session() as session:
         cypher = "MATCH (e:Entity) RETURN DISTINCT e.name AS name"
@@ -19,7 +14,7 @@ def find_closest_node(input_name, uri, user, password):
     if not all_names:
         return None
 
-    embeddings = model.encode(all_names, convert_to_tensor=True)
+    embeddings = embedding_model.encode(all_names, convert_to_tensor=True)
     sims = util.cos_sim(query_emb, embeddings)[0]
     best_idx = sims.argmax().item()
     best_score = sims[best_idx].item()
@@ -53,7 +48,6 @@ def find_paths_between_entities(name1, name2, uri="bolt://localhost:7687", user=
             steps.append(f"{subj} —[{pred}]→ {obj} {'| ' + desc if desc else ''}")
         path_str = "\n".join(steps)
         print(f"\n[{idx}]\n{path_str}")
-
 
 
 def query_relation_path():

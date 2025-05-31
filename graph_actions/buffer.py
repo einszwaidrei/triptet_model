@@ -1,8 +1,9 @@
 import json
 from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
-BUFFER_PATH = Path("triplet_buffer.jsonl")
+BUFFER_PATH = Path(__file__).resolve().parent / "triplet_buffer.jsonl"
 
 def save_to_buffer(triplet, buffer_path=BUFFER_PATH):
     triplet_with_date = triplet.copy()

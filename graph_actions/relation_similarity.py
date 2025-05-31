@@ -1,14 +1,11 @@
 from sentence_transformers import SentenceTransformer, util
 from neo4j import GraphDatabase
 
-model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-
-def triplet_to_text(tr):
-    return f"{tr['subject']} {tr['predicate']} {tr['object']}"
+from graph_builder.embeddings_utils import embedding_model, triplet_to_text
 
 def find_most_similar_triplets(user_triplet, uri="bolt://localhost:7687", user="admin", password="admin123", top_k=5):
     query_text = triplet_to_text(user_triplet)
-    query_emb = model.encode(query_text, convert_to_tensor=True)
+    query_emb = embedding_model.encode(query_text, convert_to_tensor=True)
 
     driver = GraphDatabase.driver(uri, auth=(user, password))
     with driver.session() as session:
@@ -24,7 +21,7 @@ def find_most_similar_triplets(user_triplet, uri="bolt://localhost:7687", user="
         return
 
     texts = [triplet_to_text(t) for t in all_triplets]
-    embeddings = model.encode(texts, convert_to_tensor=True)
+    embeddings = embedding_model.encode(texts, convert_to_tensor=True)
     sims = util.cos_sim(query_emb, embeddings)[0]
 
     scored = [(all_triplets[i], sims[i].item()) for i in range(len(sims))]

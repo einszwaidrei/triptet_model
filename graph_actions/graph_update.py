@@ -1,22 +1,16 @@
-from pipeline.graph_preprocessing import normalize_triplets, filter_triplets, filter_triplets_by_component_size
-from pipeline.neo4j_loader import insert_triplets_to_neo4j
-from buffer import load_buffered_triplets, clear_buffer
+from graph_builder.graph_preprocessing import normalize_triplets, filter_triplets, filter_triplets_by_component_size
+from graph_builder.neo4j_loader import insert_triplets_to_neo4j
+from graph_actions.buffer import load_buffered_triplets, clear_buffer
 from datetime import datetime
-from sentence_transformers import SentenceTransformer, util
-import pytz
+from sentence_transformers import util
 
 from neo4j import GraphDatabase
-
-model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-
-
-def triplet_to_text(t):
-    return f"{t['subject']} {t['predicate']} {t['object']}"
+from graph_builder.embeddings_utils import embedding_model, triplet_to_text
 
 
 def find_similar_in_graph(triplet, uri, user, password, threshold=0.85):
     text_query = triplet_to_text(triplet)
-    query_emb = model.encode(text_query, convert_to_tensor=True)
+    query_emb = embedding_model.encode(text_query, convert_to_tensor=True)
 
     driver = GraphDatabase.driver(uri, auth=(user, password))
     results = []
@@ -30,7 +24,7 @@ def find_similar_in_graph(triplet, uri, user, password, threshold=0.85):
         all_triplets = [dict(record) for record in records]
 
     texts = [triplet_to_text(t) for t in all_triplets]
-    embeddings = model.encode(texts, convert_to_tensor=True)
+    embeddings = embedding_model.encode(texts, convert_to_tensor=True)
 
     sims = util.cos_sim(query_emb, embeddings)[0]
 

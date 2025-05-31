@@ -1,7 +1,3 @@
-pip install fake-useragent
-pip install html2text
-
-
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 ua = UserAgent()

@@ -1,5 +1,5 @@
-from pipeline.yandex_gpt_integration import get_triplets_from_yandex
-from buffer import save_to_buffer
+from graph_builder.yandex_gpt_integration import get_triplets_from_yandex
+from graph_actions.buffer import save_to_buffer
 from datetime import datetime
 
 
